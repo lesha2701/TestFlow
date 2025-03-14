@@ -6,10 +6,16 @@ from .models import Autotest
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib import messages
+from django.contrib.auth.models import User
+from .utils import clean_code
 
 # Create your views here.
 def index(request):
-    return render(request, 'saveAutotests/index.html')
+    tests = Autotest.objects.all()
+    context = {
+        'tests': tests,  # Передаем переменную tests в шаблон
+    }
+    return render(request, 'saveAutotests/index.html', context)
 
 
 def save_autotests(request):
@@ -19,7 +25,8 @@ def save_autotests(request):
 
         if test_file and test_name:
             try:
-                test = Autotest(name=test_name, code=test_file.read().decode('utf-8'))  # Сохраняем сжатые данные
+                user = User.objects.get(username="testuser")
+                test = Autotest(name=test_name, code=test_file.read().decode('utf-8'), author=user)
                 test.save()
 
                 messages.success(request, 'Тест успешно сохранен')
@@ -30,5 +37,10 @@ def save_autotests(request):
 
         return redirect('save_autotests')
 
+    return render(request, 'saveAutotests/uploadAutotests.html')
 
+def run_autotest(request, test_id):
+    return render(request, 'saveAutotests/uploadAutotests.html')
+
+def see_autotest(request, test_id):
     return render(request, 'saveAutotests/uploadAutotests.html')
